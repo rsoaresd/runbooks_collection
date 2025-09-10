@@ -28,24 +28,10 @@ Follow these steps to systematically investigate the suspicious file content det
 **What to analyze:**
 - File path components and directory structure
 - File extension and naming patterns
-- Rule type and severity level
-- Detection timestamp and scanning tool information
-
-#### Step 2: Categorize Threat Type
-**Objective:** Classify the type of suspicious content detected.
-
-**AI Analysis:**
-- Map `ruleset-id` to threat categories:
-  - `filename-suspicious`: Potentially malicious file names
-  - `content-malware`: Known malware signatures
-  - `config-backdoor`: Suspicious configuration changes
-  - `script-obfuscated`: Obfuscated or encoded scripts
-  - `binary-packed`: Packed or encrypted executables
-- Assess threat severity based on rule type and file location
 
 ### Phase 2: File System Investigation
 
-#### Step 3: Analyze File Location Context
+#### Step 2: Analyze File Location Context
 **Objective:** Understand the file's location and legitimacy within the system.
 
 **AI Investigation:**
@@ -64,12 +50,13 @@ Source: /proc/429630/root/usr/lib/python3.6/site-packages/pgadmin4-web/pgadmin/s
 - Content type: SCSS resources (styling)
 - Detected pattern: "dark" (likely dark theme files)
 
-#### Step 4: Assess File Legitimacy
+#### Step 3: Assess File Legitimacy
 **Objective:** Determine if the detected content is legitimate or truly suspicious.
 
 **AI Investigation:**
 - Research the application context (e.g., pgAdmin4 in example)
 - Analyze if detected pattern makes sense for the application
+- Access the file and check for any suspicious behaviour
 - Check for:
   - Known false positive patterns
   - Legitimate use cases for the detected content
@@ -77,7 +64,7 @@ Source: /proc/429630/root/usr/lib/python3.6/site-packages/pgadmin4-web/pgadmin/s
 
 ### Phase 3: Risk Assessment
 
-#### Step 5: Evaluate Potential Impact
+#### Step 4: Evaluate Potential Impact
 **Objective:** Assess the security risk and potential impact of the detected content.
 
 **AI Analysis:**
@@ -91,7 +78,7 @@ Source: /proc/429630/root/usr/lib/python3.6/site-packages/pgadmin4-web/pgadmin/s
   - Web-accessible locations
   - Process privileges and capabilities
 
-#### Step 6: Check for Indicators of Compromise
+#### Step 5: Check for Indicators of Compromise
 **Objective:** Look for additional signs that may indicate actual malicious activity.
 
 **AI Investigation:**
@@ -122,7 +109,7 @@ Threat Category: [Legitimate Application File | Potential False Positive | Requi
 **For Suspicious Files:**
 - Detail specific indicators of malicious intent
 - Explain potential attack vectors or purposes
-- Assess confidence level of threat assessment
+- Assess the confidence level of the threat assessment
 
 ### 3. Recommended Actions for Security Operators
 
