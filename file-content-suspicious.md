@@ -1,6 +1,3 @@
-Here's the complete runbook in a single markdown file:
-
-```markdown
 # file-content-suspicious
 
 ## Overview
@@ -61,13 +58,11 @@ Follow these steps to systematically investigate the suspicious file content det
 - Determine if location is expected for the detected content type
 
 **Example Analysis:**
-```
-Source: /proc/429630/root/usr/lib/python3.6/site-packages/pgladmin4-web/pgadmin/static/scss/resources/dark
+Source: /proc/429630/root/usr/lib/python3.6/site-packages/pgadmin4-web/pgadmin/static/scss/resources/dark
 - Process ID: 429630
 - Application: pgAdmin4 web interface
 - Content type: SCSS resources (styling)
 - Detected pattern: "dark" (likely dark theme files)
-```
 
 #### Step 4: Assess File Legitimacy
 **Objective:** Determine if the detected content is legitimate or truly suspicious.
@@ -112,13 +107,11 @@ Source: /proc/429630/root/usr/lib/python3.6/site-packages/pgladmin4-web/pgadmin/
 After completing the investigation, provide a comprehensive analysis report with:
 
 ### 1. Detection Summary
-```
 Alert Type: file-content-suspicious
 Detected Pattern: /dark
 File Location: /proc/429630/root/usr/lib/python3.6/site-packages/pgadmin4-web/pgadmin/static/scss/resources/dark
 Rule Matched: filename-suspicious (^|/)dark$
 Threat Category: [Legitimate Application File | Potential False Positive | Requires Investigation | High Risk]
-```
 
 ### 2. Legitimacy Assessment
 **For Legitimate Files:**
@@ -158,31 +151,31 @@ stat /path/to/suspicious/file
 # Initiate malware analysis procedures
 ```
 
-### 4. Investigation Priorities
-- **Immediate:** Files in system directories, executables, or web-accessible locations
-- **High:** Files with unusual permissions or recent modifications
-- **Medium:** Application files in expected locations
-- **Low:** Cache files, temporary files, or known application resources
+### 4. Root Cause Analysis
+- Specific file paths and detection patterns involved
+- Exact rules that triggered the alerts
+- Why these patterns were flagged as suspicious
+- Application context and legitimacy assessment
 
-### 5. Context Analysis
-- Application legitimacy and expected file patterns
-- Process context and execution environment
-- File system location and access patterns
-- Historical detection patterns for similar files
+### 5. Prevention Recommendations
+- Rule tuning to reduce false positives
+- Application whitelisting for legitimate patterns
+- Enhanced monitoring for confirmed threat patterns
+- Security awareness training for detected attack vectors
 
 ## Example Scenarios
 
 ### Scenario 1: Legitimate Application File
 ```yaml
 detected: /dark
-source: /usr/lib/python3.6/site-packages/pgadmin4-web/pgadmin/static/scss/resources/dark
+source: /usr/lib/python3.6/site-packages/pgladmin4-web/pgadmin/static/scss/resources/dark
 context:
   matched-rule: (^|/)dark$
   ruleset-id: filename-suspicious
 ```
 
-**AI Should Conclude:**
-"This appears to be a legitimate dark theme resource file for pgAdmin4 web interface. The 'dark' pattern is commonly used for UI theming. Recommend adding exception for pgAdmin4 static resources."
+**AI Should Recommend:**
+"This appears to be a legitimate dark theme resource file for pgAdmin4 web interface. The 'dark' pattern is commonly used for UI theming. Recommend adding exception for pgAdmin4 static resources to prevent future false positives."
 
 ### Scenario 2: Suspicious System File
 ```yaml
@@ -194,19 +187,7 @@ context:
 ```
 
 **AI Should Recommend:**
-"Hidden file in /tmp with suspicious naming pattern. Requires immediate investigation for potential malware. Check file contents, creation time, and associated processes."
-
-### Scenario 3: Obfuscated Script
-```yaml
-detected: eval(base64_decode(...))
-source: /var/www/html/wp-content/themes/theme/functions.php
-context:
-  matched-rule: eval.*base64_decode
-  ruleset-id: script-obfuscated
-```
-
-**AI Should Recommend:**
-"Obfuscated PHP code detected in WordPress theme. High probability of web shell or malicious injection. Immediate isolation and malware analysis required."
+"Hidden file in /tmp with suspicious naming pattern. Requires immediate investigation for potential malware. Check file contents, creation time, and associated processes before quarantine."
 
 ## Success Criteria
 
@@ -215,15 +196,4 @@ Investigation is complete when you can answer:
 - [ ] What is the specific threat level and potential impact?
 - [ ] What immediate actions should security operators take?
 - [ ] Are there related files or systems that need investigation?
-- [ ] What preventive measures should be implemented?
 - [ ] Should detection rules be tuned to prevent false positives?
-
-## Escalation Criteria
-
-Escalate immediately if:
-- Files detected in critical system directories
-- Multiple related suspicious files found
-- Evidence of active compromise or data exfiltration
-- Executable files with suspicious patterns
-- Files in web-accessible locations with malicious content
-```
