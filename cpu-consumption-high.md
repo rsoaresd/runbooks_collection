@@ -20,7 +20,6 @@ Follow these steps to systematically investigate high CPU consumption:
 **AI Investigation:**
 - Analyze the `cpu_percent` field for current utilization levels
 - Examine the `threshold` field for the configured alert threshold
-- Review the `duration` field for how long the condition has persisted
 - Check `node` or `instance` field for the affected system
 - Look for `process` or `container` specific metrics if available
 
