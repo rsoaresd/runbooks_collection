@@ -46,28 +46,28 @@ Follow these steps to systematically investigate the suspicious file content det
 - Cannot directly access files within pod containers
 - Cannot execute into pods to read file contents
 - Limited to Kubernetes API-accessible metadata and logs
-- **Cannot use `oc exec` to cat file contents**
+- **Cannot use `oc exec` commands - read-only access only**
 
 **Available Investigation Approaches:**
 ```bash
 # Find specific pod information (when namespace is known)
-oc get pods -n <namespace> -o wide
+kubectl get pods -n <namespace> -o wide
 
 # If namespace is unknown, extract from file path context first
 # Example: /proc/429630/root/... suggests checking pods by process/node
-oc get pods -o wide --all-namespaces --field-selector spec.nodeName=<node-name>
+kubectl get pods -o wide --all-namespaces --field-selector spec.nodeName=<node-name>
 
 # Analyze pod specifications
-oc describe pod <pod-name> -n <namespace>
+kubectl describe pod <pod-name> -n <namespace>
 
 # Check container image and volume sources
-oc get pod <pod-name> -n <namespace> -o yaml
+kubectl get pod <pod-name> -n <namespace> -o yaml
 
 # Check if file content appears in pod logs (limited cases)
-oc logs <pod-name> -n <namespace> | grep -i "suspicious_pattern"
+kubectl logs <pod-name> -n <namespace> | grep -i "suspicious_pattern"
 
 # Look for file references in container environment or config
-oc get pod <pod-name> -n <namespace> -o jsonpath='{.spec.containers[*].env[*]}'
+kubectl get pod <pod-name> -n <namespace> -o jsonpath='{.spec.containers[*].env[*]}'
 ```
 
 **Example Analysis:**
@@ -96,13 +96,13 @@ Source: /proc/429630/root/usr/lib/python3.6/site-packages/pgadmin4-web/pgadmin/s
 **ConfigMap/Secret Content Analysis:**
 ```bash
 # Check if file path matches mounted ConfigMaps (in known namespace)
-oc get configmaps -n <namespace> -o yaml | grep -A5 -B5 "suspicious_filename"
+kubectl get configmaps -n <namespace> -o yaml | grep -A5 -B5 "suspicious_filename"
 
 # Check if file path matches mounted Secrets (in known namespace)
-oc get secrets -n <namespace> -o yaml | grep -A5 -B5 "suspicious_filename"
+kubectl get secrets -n <namespace> -o yaml | grep -A5 -B5 "suspicious_filename"
 
 # List all mounted volumes and their sources for specific pod
-oc describe pod <pod-name> -n <namespace> | grep -A10 "Mounts:"
+kubectl describe pod <pod-name> -n <namespace> | grep -A10 "Mounts:"
 ```
 
 **Process and Network Analysis:**
@@ -122,7 +122,7 @@ oc describe pod <pod-name> -n <namespace> | grep -A10 "Mounts:"
 - Cross-reference with known legitimate application file structures
 
 **When Direct File Access is Required:**
-- Document specific files that need manual inspection
+- Document specific files that need manual inspection by security operators
 - Prepare escalation details for security operators
 - Identify alternative verification methods
 - Note confidence level of assessment based on available metadata
@@ -170,7 +170,7 @@ oc describe pod <pod-name> -n <namespace> | grep -A10 "Mounts:"
 - ✅ Service and Ingress configuration review
 
 ### Unavailable Capabilities
-- ❌ Direct file system access within pods (`oc exec` not available)
+- ❌ Direct file system access within pods (no `kubectl exec` access)
 - ❌ File content reading from containers
 - ❌ Process execution inside pods
 - ❌ File integrity verification (checksums)
@@ -228,28 +228,28 @@ Threat Category: [Legitimate Application File | Potential False Positive | Requi
 **For Legitimate Suspicious Patterns:**
 ```bash
 # Verify pod and container integrity
-oc get pod <pod-name> -n <namespace> -o yaml
-oc describe pod <pod-name> -n <namespace>
+kubectl get pod <pod-name> -n <namespace> -o yaml
+kubectl describe pod <pod-name> -n <namespace>
 
 # Check deployment and image history
-oc rollout history deployment/<deployment-name> -n <namespace>
+kubectl rollout history deployment/<deployment-name> -n <namespace>
 
-# Manual file verification (requires escalation)
-oc exec -it <pod-name> -n <namespace> -- sha256sum /path/to/file
+# Manual file verification (requires security operator with cluster access)
+# Security operators can use: kubectl exec -it <pod-name> -n <namespace> -- sha256sum /path/to/file
 ```
 
 **For Confirmed Threats:**
 ```bash
 # Isolate the affected pod (coordinate with incident response)
-oc cordon <node-name>
-oc drain <node-name> --ignore-daemonsets
+kubectl cordon <node-name>
+kubectl drain <node-name> --ignore-daemonsets
 
 # Preserve evidence before remediation
-oc get pod <pod-name> -n <namespace> -o yaml > evidence/pod-spec.yaml
-oc logs <pod-name> -n <namespace> > evidence/pod-logs.txt
+kubectl get pod <pod-name> -n <namespace> -o yaml > evidence/pod-spec.yaml
+kubectl logs <pod-name> -n <namespace> > evidence/pod-logs.txt
 
 # Quarantine and analyze
-oc scale deployment <deployment-name> --replicas=0 -n <namespace>
+kubectl scale deployment <deployment-name> --replicas=0 -n <namespace>
 ```
 
 ### 5. Root Cause Analysis
@@ -290,10 +290,7 @@ context:
 
 **Recommendation:** This is a false positive. Add exception for pgAdmin4 static resources to prevent future alerts."
 
-**Manual Verification Required:** Security operators should verify file contents using:
-```bash
-oc exec -it pgladmin-deployment-xxx -n database-tools -- cat /usr/lib/python3.6/site-packages/pgladmin4-web/pgadmin/static/scss/resources/dark
-```
+**Manual Verification Required:** Security operators should verify file contents using cluster access tools if additional confirmation needed.
 
 ### Scenario 2: Suspicious System File
 ```yaml
@@ -319,12 +316,7 @@ context:
 
 **Immediate Actions Required:** 
 1. Isolate the pod immediately
-2. **Extract and analyze file contents immediately:**
-   ```bash
-   oc exec -it unknown-workload-xxx -n default -- cat /tmp/.dark_payload
-   oc exec -it unknown-workload-xxx -n default -- file /tmp/.dark_payload
-   oc cp default/unknown-workload-xxx:/tmp/.dark_payload ./evidence/dark_payload
-   ```
+2. **Security operators must extract and analyze file contents using cluster access tools**
 3. Check for lateral movement to other pods
 4. Review how this pod was deployed"
 
@@ -345,17 +337,12 @@ context:
 - Image: custom-app:v1.2.3 (private registry)
 - Volume mounts: Application data volume
 - Security context: Standard non-privileged
-- **File content: REQUIRES MANUAL EXTRACTION**
+- **File content: REQUIRES MANUAL EXTRACTION BY SECURITY OPERATORS**
 
 **Limitations:** Cannot verify actual file contents or perform malware analysis through Kubernetes API.
 
 **Required Escalation:** 
-1. **Security team must immediately extract file contents:**
-   ```bash
-   oc exec -it app-server-xxx -n production -- cat /opt/app/malware_sample
-   oc exec -it app-server-xxx -n production -- hexdump -C /opt/app/malware_sample | head -50
-   oc cp production/app-server-xxx:/opt/app/malware_sample ./malware-analysis/
-   ```
+1. **Security team must immediately extract file contents using cluster access tools**
 2. Perform offline malware analysis on extracted file
 3. Consider pod quarantine pending investigation results
 4. Review container image build process for compromise"
@@ -379,7 +366,7 @@ context:
 - **File content accessible through ConfigMap:**
 
 ```bash
-oc get configmap app-config -n applications -o yaml
+kubectl get configmap app-config -n applications -o yaml
 ```
 
 **ConfigMap Analysis:**
@@ -398,6 +385,6 @@ Investigation is complete when you can answer:
 - [ ] What immediate actions should security operators take?
 - [ ] Are there related pods or deployments that need investigation?
 - [ ] Should detection rules be tuned to prevent false positives for this application?
-- [ ] **What specific commands are needed to extract and analyze the file contents?**
+- [ ] **What specific escalation is needed for security operators to access file contents?**
 - [ ] What manual investigation steps are required due to TARSy's limitations?
 - [ ] Is immediate pod isolation or quarantine recommended?
